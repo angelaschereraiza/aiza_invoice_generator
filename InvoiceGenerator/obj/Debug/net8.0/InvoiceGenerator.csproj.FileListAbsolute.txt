@@ -1,0 +1,15 @@
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.GeneratedMSBuildEditorConfig.editorconfig
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.AssemblyInfoInputs.cache
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.AssemblyInfo.cs
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.csproj.CoreCompileInputs.cache
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.sourcelink.json
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/bin/Debug/net8.0/InvoiceGenerator
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/bin/Debug/net8.0/InvoiceGenerator.deps.json
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/bin/Debug/net8.0/InvoiceGenerator.runtimeconfig.json
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/bin/Debug/net8.0/InvoiceGenerator.dll
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/bin/Debug/net8.0/InvoiceGenerator.pdb
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.dll
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/refint/InvoiceGenerator.dll
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.pdb
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.genruntimeconfig.cache
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/ref/InvoiceGenerator.dll
