@@ -13,3 +13,8 @@
 /home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.pdb
 /home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.genruntimeconfig.cache
 /home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/ref/InvoiceGenerator.dll
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/bin/Debug/net8.0/DocumentFormat.OpenXml.dll
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/bin/Debug/net8.0/DocumentFormat.OpenXml.Framework.dll
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/bin/Debug/net8.0/System.IO.Packaging.dll
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.csproj.AssemblyReference.cache
+/home/angi/code/aiza_invoice_generator/InvoiceGenerator/obj/Debug/net8.0/InvoiceGenerator.csproj.CopyComplete
