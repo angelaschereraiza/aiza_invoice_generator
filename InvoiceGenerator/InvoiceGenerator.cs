@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.IO.Compression;
 using System.Text;
 
@@ -8,26 +6,17 @@ public static class InvoiceGenerator
 {
     public static void Run()
     {
-        // Define invoice details
-        string recipient = "Customer AG";
-        string street = "Test Street";
-        string place = "0000 Test";
-        string date = DateTime.Now.ToString("dd.MM.yyyy");
-        
-        Console.Write("Amount: ");
-        string? amountInput = Console.ReadLine();
-        string amount = amountInput ?? "0"; // Default to "0" if amountInput is null
+        var invoiceDetails = new InvoiceDetails();
 
-        // Check if the amount is valid
-        if (string.IsNullOrWhiteSpace(amount))
+        if (string.IsNullOrWhiteSpace(invoiceDetails.Hours))
         {
-            Console.WriteLine("Amount cannot be null or empty.");
+            Console.WriteLine("Hours cannot be null or empty.");
             return;
         }
 
         // Define paths for the template and the output file
         string templatePath = Path.GetFullPath("invoice_template.odt");
-        string outputPath = Path.GetFullPath($"Rechnung_{recipient.Replace(" ", "_")}_{date.Replace(".", "_")}.odt");
+        string outputPath = GetOutputPath(invoiceDetails);
 
         // Ensure the template file exists
         if (!File.Exists(templatePath))
@@ -40,7 +29,7 @@ public static class InvoiceGenerator
         File.Copy(templatePath, outputPath, true);
 
         // Modify the content.xml inside the ODT file
-        if (!ModifyContentXml(outputPath, recipient, street, place, date, amount))
+        if (!ModifyContentXml(outputPath, invoiceDetails))
         {
             Console.WriteLine("Failed to modify ODT file.");
             return;
@@ -57,7 +46,7 @@ public static class InvoiceGenerator
         string pdfOutputPath = outputPath.Replace(".odt", ".pdf");
 
         // Convert the ODT file to PDF
-        if (!ConvertOdtToPdf(outputPath, pdfOutputPath))
+        if (!ConvertOdtToPDF(outputPath, pdfOutputPath))
         {
             Console.WriteLine("Failed to create PDF.");
             return;
@@ -69,8 +58,14 @@ public static class InvoiceGenerator
         Console.WriteLine("The invoice was created successfully.");
     }
 
+    // Function to get the output path for the ODT file
+    private static string GetOutputPath(InvoiceDetails details)
+    {
+        return Path.GetFullPath($"Rechnung_{details.Recipient.Replace(" ", "_")}_{details.Date.Replace(".", "_")}.odt");
+    }
+
     // Function to modify the content.xml file inside the ODT archive
-    private static bool ModifyContentXml(string outputPath, string recipient, string street, string place, string date, string amount)
+    private static bool ModifyContentXml(string outputPath, InvoiceDetails details)
     {
         try
         {
@@ -91,11 +86,13 @@ public static class InvoiceGenerator
                 }
 
                 // Replace placeholders with actual values
-                content = content.Replace("[InvoiceRecipient]", recipient)
-                                 .Replace("[Street]", street)
-                                 .Replace("[Place]", place)
-                                 .Replace("[Date]", date)
-                                 .Replace("[Amount]", amount);
+                content = content.Replace("[InvoiceRecipient]", details.Recipient)
+                                 .Replace("[Street]", details.Street)
+                                 .Replace("[Place]", details.Place)
+                                 .Replace("[Hours]", details.Hours)
+                                 .Replace("[HourlyWage]", details.HourlyWage.ToString())
+                                 .Replace("[MWST]", details.Mwst.ToString())
+                                 .Replace("[Date]", details.Date);
 
                 // Delete the old entry and create a new one with the updated content
                 entry.Delete();
@@ -116,7 +113,7 @@ public static class InvoiceGenerator
     }
 
     // Function to convert the ODT file to PDF using LibreOffice
-    private static bool ConvertOdtToPdf(string outputPath, string pdfOutputPath)
+    private static bool ConvertOdtToPDF(string outputPath, string pdfOutputPath)
     {
         // Set up the process start information
         ProcessStartInfo startInfo = new ProcessStartInfo
