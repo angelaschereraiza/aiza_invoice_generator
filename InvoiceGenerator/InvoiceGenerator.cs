@@ -6,17 +6,18 @@ public static class InvoiceGenerator
 {
     public static void Run()
     {
-        var invoiceDetails = new InvoiceDetails();
+        // Create an instance of InvoiceDetails
+        InvoiceDetails invoiceDetails = new InvoiceDetails();
 
-        if (string.IsNullOrWhiteSpace(invoiceDetails.Hours))
+        if (invoiceDetails.Hours == 0)
         {
             Console.WriteLine("Hours cannot be null or empty.");
             return;
         }
 
         // Define paths for the template and the output file
-        string templatePath = Path.GetFullPath("invoice_template.odt");
-        string outputPath = GetOutputPath(invoiceDetails);
+        string templatePath = Path.GetFullPath("InvoiceTemplate.odt");
+        string outputPath = Path.GetFullPath($"Rechnung_{invoiceDetails.Recipient.Replace(" ", "_")}_{invoiceDetails.Date.Replace(".", "_")}.odt");
 
         // Ensure the template file exists
         if (!File.Exists(templatePath))
@@ -55,16 +56,21 @@ public static class InvoiceGenerator
         // Delete the ODT file after successful PDF creation
         File.Delete(outputPath);
 
+        // Generate the QR Code and add it to the PDF
+        InvoiceQRCodeGenerator qrCodeGenerator = new InvoiceQRCodeGenerator();
+        qrCodeGenerator.GenerateInvoiceQRCode(pdfOutputPath, invoiceDetails);
+
         Console.WriteLine("The invoice was created successfully.");
     }
 
-    // Function to get the output path for the ODT file
-    private static string GetOutputPath(InvoiceDetails details)
-    {
-        return Path.GetFullPath($"Rechnung_{details.Recipient.Replace(" ", "_")}_{details.Date.Replace(".", "_")}.odt");
-    }
-
-    // Function to modify the content.xml file inside the ODT archive
+    /// <summary>
+    /// Modifies the content.xml file within an ODT archive by replacing placeholders with actual values.
+    /// This method reads the content.xml file from the provided ODT file, replaces predefined placeholders
+    /// with the actual invoice details, and then updates the content.xml file within the ODT archive.
+    /// </summary>
+    /// <param name="outputPath">The file path of the ODT document to modify.</param>
+    /// <param name="details">The InvoiceDetails object containing invoice information.</param>
+    /// <returns>Returns true if the content.xml file was modified successfully; otherwise, false.</returns>
     private static bool ModifyContentXml(string outputPath, InvoiceDetails details)
     {
         try
@@ -86,13 +92,19 @@ public static class InvoiceGenerator
                 }
 
                 // Replace placeholders with actual values
-                content = content.Replace("[InvoiceRecipient]", details.Recipient)
-                                 .Replace("[Street]", details.Street)
+                content = content.Replace("[Date]", details.Date)
+                                 .Replace("[FirstDateMonth]", details.FirstDateMonth)
+                                 .Replace("[HourlyWage]", details.FormatCurrency(details.HourlyWage))
+                                 .Replace("[Hours]", details.Hours.ToString())
+                                 .Replace("[LastDateMonth]", details.LastDateMonth)
+                                 .Replace("[MonthYear]", details.MonthYear)
+                                 .Replace("[MWSTRate]", details.MWSTRate.ToString())
+                                 .Replace("[MWSTPrice]", details.FormatCurrency(details.MWSTPrice))
                                  .Replace("[Place]", details.Place)
-                                 .Replace("[Hours]", details.Hours)
-                                 .Replace("[HourlyWage]", details.HourlyWage.ToString())
-                                 .Replace("[MWST]", details.Mwst.ToString())
-                                 .Replace("[Date]", details.Date);
+                                 .Replace("[Recipient]", details.Recipient)
+                                 .Replace("[Street]", details.Street)
+                                 .Replace("[TotalPrice]", details.FormatCurrency(details.TotalPrice))
+                                 .Replace("[TotalPriceInclMWST]", details.FormatCurrency(details.TotalPriceInclMWST));
 
                 // Delete the old entry and create a new one with the updated content
                 entry.Delete();
@@ -112,7 +124,14 @@ public static class InvoiceGenerator
         }
     }
 
-    // Function to convert the ODT file to PDF using LibreOffice
+    /// <summary>
+    /// Converts an ODT file to a PDF file using LibreOffice in headless mode.
+    /// This method starts a LibreOffice process to perform the conversion, 
+    /// waits for the process to complete, and then checks if the PDF file was created successfully.
+    /// </summary>
+    /// <param name="outputPath">The file path of the ODT document to convert.</param>
+    /// <param name="pdfOutputPath">The file path where the converted PDF document will be saved.</param>
+    /// <returns>Returns true if the PDF file was created successfully; otherwise, false.</returns>
     private static bool ConvertOdtToPDF(string outputPath, string pdfOutputPath)
     {
         // Set up the process start information
