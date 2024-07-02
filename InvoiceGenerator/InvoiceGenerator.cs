@@ -148,7 +148,7 @@ public static class InvoiceGenerator
         try
         {
             // Start the LibreOffice process
-            using (Process process = Process.Start(startInfo))
+            using (Process? process = Process.Start(startInfo))
             {
                 if (process == null)
                 {

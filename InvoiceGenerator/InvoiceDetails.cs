@@ -19,7 +19,7 @@ public class InvoiceDetails
     public InvoiceDetails()
     {
         Date = DateTime.Now.ToString("dd.MM.yyyy");
-        HourlyWage = 110;
+        HourlyWage = 150;
         MWSTRate = 8.1f;
 
         // Determine the invoice period based on the current date
@@ -42,7 +42,7 @@ public class InvoiceDetails
         Hours = float.TryParse(hoursInput, out float h) ? h : 0f; // Default to 0 if parsing fails
 
         Place = "0000 Test";
-        Recipient = "Customer AG";
+        Recipient = "Test Customer AG";
         Street = "Test Street";
         TotalPrice = RoundToNearest5Rappen(HourlyWage * Hours);
         MWSTPrice = TotalPrice * (MWSTRate / 100);
