@@ -2,29 +2,32 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Text;
 
 public static class InvoiceGenerator
 {
     public static void Run()
     {
+        // Define invoice details
         string recipient = "Customer AG";
         string street = "Test Street";
         string place = "0000 Test";
         string date = DateTime.Now.ToString("dd.MM.yyyy");
-        string? amount = "100";
+        
+        Console.Write("Amount: ");
+        string? amountInput = Console.ReadLine();
+        string amount = amountInput ?? "0"; // Default to "0" if amountInput is null
 
-        // Console.Write("Amount: ");
-        // string? amount = Console.ReadLine();
-
+        // Check if the amount is valid
         if (string.IsNullOrWhiteSpace(amount))
         {
             Console.WriteLine("Amount cannot be null or empty.");
             return;
         }
 
-        // Paths to the template and output document
-        string templatePath = Path.GetFullPath("invoice_template.odt"); // Use absolute path
-        string outputPath = Path.GetFullPath($"Rechnung_{recipient.Replace(" ", "_")}_{date.Replace(".", "_")}.odt"); // Avoid spaces in filenames
+        // Define paths for the template and the output file
+        string templatePath = Path.GetFullPath("invoice_template.odt");
+        string outputPath = Path.GetFullPath($"Rechnung_{recipient.Replace(" ", "_")}_{date.Replace(".", "_")}.odt");
 
         // Ensure the template file exists
         if (!File.Exists(templatePath))
@@ -33,94 +36,119 @@ public static class InvoiceGenerator
             return;
         }
 
-        // Create a copy of the template to work on
+        // Copy the template to the output path
         File.Copy(templatePath, outputPath, true);
 
-        // Manipulate the content.xml file inside the ODT (which is a ZIP archive)
-        try
+        // Modify the content.xml inside the ODT file
+        if (!ModifyContentXml(outputPath, recipient, street, place, date, amount))
         {
-            using (ZipArchive archive = ZipFile.Open(outputPath, ZipArchiveMode.Update))
-            {
-                ZipArchiveEntry entry = archive.GetEntry("content.xml");
-                if (entry != null)
-                {
-                    string content;
-                    using (StreamReader sr = new StreamReader(entry.Open()))
-                    {
-                        content = sr.ReadToEnd();
-                    }
-
-                    content = content.Replace("[InvoiceRecipient]", recipient);
-                    content = content.Replace("[Street]", street);
-                    content = content.Replace("[Place]", place);
-                    content = content.Replace("[Date]", date);
-                    content = content.Replace("[Amount]", amount);
-
-                    using (StreamWriter sw = new StreamWriter(entry.Open()))
-                    {
-                        sw.Write(content);
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Failed to modify ODT file: " + ex.Message);
+            Console.WriteLine("Failed to modify ODT file.");
             return;
         }
 
-        // Verify if the output ODT file is created
+        // Verify that the ODT file was created successfully
         if (!File.Exists(outputPath))
         {
             Console.WriteLine($"Failed to create ODT file: {outputPath}");
             return;
         }
 
-        Console.WriteLine($"ODT file created successfully: {outputPath}");
-
-        // Start LibreOffice in headless mode to convert the ODT to PDF
+        // Define the output path for the PDF file
         string pdfOutputPath = outputPath.Replace(".odt", ".pdf");
-        string arguments = $"--headless --convert-to pdf \"{outputPath}\" --outdir \"{Path.GetDirectoryName(pdfOutputPath)}\"";
 
-        Console.WriteLine("Executing command: soffice " + arguments);
+        // Convert the ODT file to PDF
+        if (!ConvertOdtToPdf(outputPath, pdfOutputPath))
+        {
+            Console.WriteLine("Failed to create PDF.");
+            return;
+        }
 
+        // Delete the ODT file after successful PDF creation
+        File.Delete(outputPath);
+
+        Console.WriteLine("The invoice was created successfully.");
+    }
+
+    // Function to modify the content.xml file inside the ODT archive
+    private static bool ModifyContentXml(string outputPath, string recipient, string street, string place, string date, string amount)
+    {
+        try
+        {
+            using (ZipArchive archive = ZipFile.Open(outputPath, ZipArchiveMode.Update))
+            {
+                ZipArchiveEntry? entry = archive.GetEntry("content.xml");
+                if (entry == null)
+                {
+                    Console.WriteLine("content.xml not found in the ODT archive.");
+                    return false;
+                }
+
+                // Read the content of content.xml
+                string content;
+                using (StreamReader sr = new StreamReader(entry.Open(), Encoding.UTF8))
+                {
+                    content = sr.ReadToEnd();
+                }
+
+                // Replace placeholders with actual values
+                content = content.Replace("[InvoiceRecipient]", recipient)
+                                 .Replace("[Street]", street)
+                                 .Replace("[Place]", place)
+                                 .Replace("[Date]", date)
+                                 .Replace("[Amount]", amount);
+
+                // Delete the old entry and create a new one with the updated content
+                entry.Delete();
+                ZipArchiveEntry newEntry = archive.CreateEntry("content.xml");
+                using (Stream entryStream = newEntry.Open())
+                using (StreamWriter sw = new StreamWriter(entryStream, Encoding.UTF8))
+                {
+                    sw.Write(content);
+                }
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Failed to modify ODT file: " + ex.Message);
+            return false;
+        }
+    }
+
+    // Function to convert the ODT file to PDF using LibreOffice
+    private static bool ConvertOdtToPdf(string outputPath, string pdfOutputPath)
+    {
+        // Set up the process start information
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
             FileName = "soffice",
-            Arguments = arguments,
+            Arguments = $"--headless --convert-to pdf \"{outputPath}\" --outdir \"{Path.GetDirectoryName(pdfOutputPath)}\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true,
             UseShellExecute = false
         };
 
-        Process process = new Process { StartInfo = startInfo };
-
         try
         {
-            process.Start();
-
-            // Read the output and error streams
-            string output = process.StandardOutput.ReadToEnd();
-            string error = process.StandardError.ReadToEnd();
-
-            process.WaitForExit();
-
-            Console.WriteLine("LibreOffice output: " + output);
-            Console.WriteLine("LibreOffice error: " + error);
-
-            if (File.Exists(pdfOutputPath))
+            // Start the LibreOffice process
+            using (Process process = Process.Start(startInfo))
             {
-                Console.WriteLine($"Invoice has been created and saved as PDF: {pdfOutputPath}");
-            }
-            else
-            {
-                Console.WriteLine("Failed to create PDF.");
+                if (process == null)
+                {
+                    throw new InvalidOperationException("Failed to start LibreOffice process.");
+                }
+
+                process.WaitForExit();
+
+                // Check if the PDF file was created successfully
+                return File.Exists(pdfOutputPath);
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine("An error occurred: " + ex.Message);
+            return false;
         }
     }
 }
