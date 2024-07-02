@@ -2,18 +2,37 @@
 
 The Aiza Invoice Generator automates the creation of PDF invoices for Aiza GmbH, streamlining your billing process with ease and efficiency.
 
-## Step 1: Install the necessary libraries
-* dotnet add package DocumentFormat.OpenXml
-* dotnet add package Open-XML-SDK
-* dotnet add package QRCoder
-* dotnet add package SkiaSharp
-* dotnet add package PdfSharpCore
-* dotnet add package SkiaSharp.QrCode
-* dotnet add package System.Drawing.Common
-* dotnet add package SixLabors.ImageSharp
-* dotnet add package SixLabors.ImageSharp.Drawing
+## Requirements
+- .NET 8.0 SDK or later
 
-## Step 2: Build and run
-* cd InvoiceGenerator
-* dotnet build
-* dotnet run
+## Step 1: Clone the Repository
+```bash
+git clone https://github.com/yourusername/aiza-invoice-generator.git
+cd aiza-invoice-generator
+```
+
+## Step 2: Restore Dependencies
+```bash
+dotnet restore
+```
+
+## Step 3: Build and Run
+```bash
+dotnet build
+dotnet run
+```
+
+## Dependencies
+The project relies on the following libraries:
+
+* DocumentFormat.OpenXml
+* Open-XML-SDK
+* QRCoder
+* SkiaSharp
+* PdfSharpCore
+* SkiaSharp.QrCode
+* System.Drawing.Common
+* SixLabors.ImageSharp
+* SixLabors.ImageSharp.Drawing
+
+All dependencies are specified in the InvoiceGenerator.csproj file and will be restored when you run dotnet restore.
