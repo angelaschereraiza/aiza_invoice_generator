@@ -100,7 +100,7 @@ public static class InvoiceGenerator
                                  .Replace("[MonthYear]", details.MonthYear)
                                  .Replace("[MWSTRate]", details.MWSTRate.ToString())
                                  .Replace("[MWSTPrice]", details.FormatCurrency(details.MWSTPrice))
-                                 .Replace("[Place]", details.Place)
+                                 .Replace("[Place]", $"{details.ZIP} {details.Place}")
                                  .Replace("[Recipient]", details.Recipient)
                                  .Replace("[Street]", details.Street)
                                  .Replace("[TotalPrice]", details.FormatCurrency(details.TotalPrice))

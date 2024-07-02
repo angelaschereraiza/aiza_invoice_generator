@@ -15,6 +15,8 @@ public class InvoiceDetails
     public string Street { get; }
     public float TotalPrice { get; }
     public float TotalPriceInclMWST { get; }
+    public string ZIP { get; }
+
 
     public InvoiceDetails()
     {
@@ -41,15 +43,16 @@ public class InvoiceDetails
         string? hoursInput = Console.ReadLine();
         Hours = float.TryParse(hoursInput, out float h) ? h : 0f; // Default to 0 if parsing fails
 
-        Place = "0000 Test";
+        Place = "Test";
         Recipient = "Test Customer AG";
         Street = "Test Street";
         TotalPrice = RoundToNearest5Rappen(HourlyWage * Hours);
         MWSTPrice = TotalPrice * (MWSTRate / 100);
         TotalPriceInclMWST = RoundToNearest5Rappen(TotalPrice + MWSTPrice);
+        ZIP = "0000";
     }
         
-    // Method to round a float to the nearest 0.05 (5 Rappen)
+    // Method to round a float to the nearest 0.05
     private static float RoundToNearest5Rappen(float value)
     {
         return (float)(Math.Round(value * 20, MidpointRounding.AwayFromZero) / 20.0);
