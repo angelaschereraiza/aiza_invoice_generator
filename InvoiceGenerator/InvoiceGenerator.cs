@@ -57,8 +57,8 @@ public static class InvoiceGenerator
         File.Delete(outputPath);
 
         // Generate the QR Code and add it to the PDF
-        InvoiceQRCodeGenerator qrCodeGenerator = new InvoiceQRCodeGenerator();
-        qrCodeGenerator.GenerateInvoiceQRCode(pdfOutputPath, invoiceDetails);
+        QRBillGenerator qrBillGenerator = new QRBillGenerator();
+        qrBillGenerator.GenerateQRBill(pdfOutputPath, invoiceDetails);
 
         Console.WriteLine("The invoice was created successfully.");
     }

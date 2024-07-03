@@ -4,7 +4,7 @@
 <g font-family="Helvetica,Arial,&quot;Liberation Sans&quot;" transform="translate(0 297.638)">
 <title>Swiss QR Bill</title>
 <g transform="translate(189.921 0)">
-<text x="0" y="-274.665" font-size="11" font-weight="bold">Payment part</text>
+<text x="0" y="-274.665" font-size="11" font-weight="bold">Zahlteil</text>
 </g>
 <g transform="translate(189.921 -119.055) scale(2.46)">
 <path fill="#000000" shape-rendering="crispEdges"
@@ -114,38 +114,38 @@ d="M56.693,-73.701h17.008v17.008h-17.008z"/>
 d="M63.543,-59.685l3.307,0l0,-3.858l3.858,0l0,-3.307l-3.858,0l0,-3.858l-3.307,0l0,3.858l-3.858,0l0,3.307l3.858,0"/>
 </g>
 <g transform="translate(189.921 0)">
-<text x="0" y="-98.482" font-size="8" font-weight="bold">Currency</text>
+<text x="0" y="-98.482" font-size="8" font-weight="bold">Währung</text>
 <text x="0" y="-85.482" font-size="10">CHF</text>
-<text x="42.52" y="-98.482" font-size="8" font-weight="bold">Amount</text>
+<text x="42.52" y="-98.482" font-size="8" font-weight="bold">Betrag</text>
 <text x="42.52" y="-85.482" font-size="10">15 728.55</text>
 </g>
 <g transform="translate(334.488 0)">
-<text x="0" y="-277.065" font-size="8" font-weight="bold">Account / Payable to</text>
+<text x="0" y="-277.065" font-size="8" font-weight="bold">Konto / Zahlbar an</text>
 <text x="0" y="-266.065" font-size="10">CH23 8080 8007 6888 9345 2</text>
 <text x="0" y="-255.065" font-size="10">Aiza GmbH</text>
 <text x="0" y="-244.065" font-size="10">Bernstrasse 159</text>
 <text x="0" y="-233.065" font-size="10">3052 Zollikofen</text>
-<text x="0" y="-211.065" font-size="8" font-weight="bold">Payable by</text>
+<text x="0" y="-211.065" font-size="8" font-weight="bold">Zahlbar durch</text>
 <text x="0" y="-200.065" font-size="10">Test Customer AG</text>
 <text x="0" y="-189.065" font-size="10">Test Street</text>
 <text x="0" y="-178.065" font-size="10">0000 Test</text>
 </g>
 <g transform="translate(14.173 0)">
-<text x="0" y="-274.665" font-size="11" font-weight="bold">Receipt</text>
-<text x="0" y="-258.822" font-size="6" font-weight="bold">Account / Payable to</text>
+<text x="0" y="-274.665" font-size="11" font-weight="bold">Empfangsschein</text>
+<text x="0" y="-258.822" font-size="6" font-weight="bold">Konto / Zahlbar an</text>
 <text x="0" y="-249.822" font-size="8">CH23 8080 8007 6888 9345 2</text>
 <text x="0" y="-240.822" font-size="8">Aiza GmbH</text>
 <text x="0" y="-231.822" font-size="8">Bernstrasse 159</text>
 <text x="0" y="-222.822" font-size="8">3052 Zollikofen</text>
-<text x="0" y="-204.822" font-size="6" font-weight="bold">Payable by</text>
+<text x="0" y="-204.822" font-size="6" font-weight="bold">Zahlbar durch</text>
 <text x="0" y="-195.822" font-size="8">Test Customer AG</text>
 <text x="0" y="-186.822" font-size="8">Test Street</text>
 <text x="0" y="-177.822" font-size="8">0000 Test</text>
-<text x="0" y="-100.082" font-size="6" font-weight="bold">Currency</text>
+<text x="0" y="-100.082" font-size="6" font-weight="bold">Währung</text>
 <text x="0" y="-89.082" font-size="8">CHF</text>
-<text x="34.016" y="-100.082" font-size="6" font-weight="bold">Amount</text>
+<text x="34.016" y="-100.082" font-size="6" font-weight="bold">Betrag</text>
 <text x="34.016" y="-89.082" font-size="8">15 728.55</text>
-<text x="97.392" y="-60.397" font-size="6" font-weight="bold">Acceptance point</text>
+<text x="104.724" y="-60.397" font-size="6" font-weight="bold">Annahmestelle</text>
 </g>
 <path stroke="#000000" stroke-width="0.6" stroke-dasharray="2.4" shape-rendering="crispEdges" fill="none"
 d="M175.748,0l0,-274.961m0,-8.504l0,-14.173"/>
