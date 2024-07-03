@@ -2,14 +2,7 @@ using PdfSharp.Pdf;
 using PdfSharp.Drawing;
 using Codecrete.SwissQRBill.Generator;
 using SkiaSharp;
-using System;
-using System.IO;
 using Svg.Skia;
-using Aspose.Html;
-using Aspose.Html.Dom.Svg;
-using Aspose.Html.Converters;
-using Aspose.Html.Saving;
-using Aspose.Html.Rendering.Image;
 
 public class QRBillGenerator
 {
@@ -59,49 +52,10 @@ public class QRBillGenerator
         // Save generated SVG file
         File.WriteAllBytes(svgPath, svgBytes);
 
-        // Convert SVG to PNG and saves PNG
-        Converter.ConvertSVG(new SVGDocument(svgPath), new ImageSaveOptions(ImageFormat.Png), pngPath);
+        // Convert the SVG to a high-quality PNG file
+        ConvertSvgToPng(svgPath, pngPath);
 
-        // Load the SVG into an SKPicture
-        // SKSvg svg = new SKSvg();
-        // using (var stream = new MemoryStream(svgBytes))
-        // {
-        //     svg.Load(stream);
-        // }
-
-        // if (svg.Picture == null)
-        // {
-        //     throw new InvalidOperationException("Failed to load the SVG picture.");
-        // }
-
-        // // Convert SKPicture to SKImage with proper font handling
-        // SKImageInfo info = new SKImageInfo((int)svg.Picture.CullRect.Width, (int)svg.Picture.CullRect.Height);
-        // using (SKSurface surface = SKSurface.Create(info))
-        // {
-        //     SKCanvas canvas = surface.Canvas;
-        //     canvas.Clear(SKColors.Transparent);
-        //     canvas.DrawPicture(svg.Picture);
-
-        //     // Load and set the desired fonts
-        //     using (var fontStream = File.OpenRead("Helvetica.ttf"))
-        //     {
-        //         var typeface = SKTypeface.FromStream(fontStream);
-        //         canvas.DrawPicture(svg.Picture, new SKPaint { Typeface = typeface });
-        //     }
-
-        //     SKImage qrImage = surface.Snapshot();
-
-        //     // Save SKImage to a temporary PNG file
-        //     using (SKData pngData = qrImage.Encode(SKEncodedImageFormat.Png, 200))
-        //     {
-        //         using (FileStream fs = File.OpenWrite(pngPath))
-        //         {
-        //             pngData.SaveTo(fs);
-        //         }
-        //     }
-        //}
-
-        // Embed the QR code image into the PDF
+        // Embed the QR code PNG into the PDF
         EmbedQRInPDF(pdfOutputPath, pngPath);
 
         // Delete temporary files
@@ -109,25 +63,69 @@ public class QRBillGenerator
         File.Delete(svgPath);
     }
 
+    /// <summary>
+    /// Converts an SVG file to a high-resolution PNG file.
+    /// This method loads an SVG file, renders it onto a high-resolution canvas to ensure quality,
+    /// and then saves the rendered image as a PNG file.
+    /// </summary>
+    /// <param name="svgPath">The file path of the input SVG file.</param>
+    /// <param name="pngPath">The file path where the output PNG file will be saved.</param>
+    private void ConvertSvgToPng(string svgPath, string pngPath)
+    {
+        // Load the SVG file
+        SKSvg svg = new SKSvg();
+        using (var stream = new FileStream(svgPath, FileMode.Open, FileAccess.Read))
+        {
+            svg.Load(stream);
+        }
+
+        if (svg.Picture == null)
+        {
+            throw new InvalidOperationException("Failed to load the SVG picture.");
+        }
+
+        // Render the SVG to a high-resolution PNG file
+        int width = (int)svg.Picture.CullRect.Width * 4;  // Increase resolution by 4 times
+        int height = (int)svg.Picture.CullRect.Height * 4;
+        using (SKSurface surface = SKSurface.Create(new SKImageInfo(width, height)))
+        {
+            SKCanvas canvas = surface.Canvas;
+            canvas.Clear(SKColors.Transparent);
+            canvas.Scale(4);  // Scale canvas to improve resolution
+            canvas.DrawPicture(svg.Picture);
+
+            SKImage qrImage = surface.Snapshot();
+
+            using (SKData data = qrImage.Encode(SKEncodedImageFormat.Png, 100))
+            {
+                File.WriteAllBytes(pngPath, data.ToArray());
+            }
+        }
+    }
+
+    /// <summary>
+    /// Embeds a QR code image into a PDF file.
+    /// This method opens an existing PDF file, loads a QR code image,
+    /// and embeds the QR code image into the last page of the PDF at a specified position and size.
+    /// </summary>
+    /// <param name="pdfOutputPath">The file path of the existing PDF document to modify.</param>
+    /// <param name="qrImagePath">The file path of the QR code image to embed.</param>
     private void EmbedQRInPDF(string pdfOutputPath, string qrImagePath)
     {
         using (PdfDocument document = PdfSharp.Pdf.IO.PdfReader.Open(pdfOutputPath, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Modify))
         {
-            // Assume that the QR code should be added to the last page
-            PdfPage page = document.Pages[document.Pages.Count - 1];
-
+            PdfPage page = document.Pages[0];
             XGraphics gfx = XGraphics.FromPdfPage(page);
 
             // Load the QR code image
             XImage qrImage = XImage.FromFile(qrImagePath);
 
-            // Define the position and size for the QR code image
-            double x = 0; // Adjust the X position as needed
-            double y = page.Height.Point - (qrImage.PixelHeight * (page.Width.Point / qrImage.PixelWidth)); // Adjust the Y position as needed
+            // Define the position and size for the QR code image 
+            double y = page.Height.Point - (qrImage.PixelHeight * (page.Width.Point / qrImage.PixelWidth));
             double width = page.Width.Point;
-            double height = qrImage.PixelHeight * (page.Width.Point / qrImage.PixelWidth); // Maintain aspect ratio
+            double height = qrImage.PixelHeight * (page.Width.Point / qrImage.PixelWidth);
 
-            gfx.DrawImage(qrImage, x, y, width, height);
+            gfx.DrawImage(qrImage, 0, y, width, height);
 
             // Save the updated PDF
             document.Save(pdfOutputPath);

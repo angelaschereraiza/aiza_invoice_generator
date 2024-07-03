@@ -21,7 +21,7 @@ public class InvoiceDetails
     public InvoiceDetails()
     {
         Date = DateTime.Now.ToString("dd.MM.yyyy");
-        HourlyWage = 110;
+        HourlyWage = 150;
         MWSTRate = 8.1f;
 
         // Determine the invoice period based on the current date
@@ -52,13 +52,25 @@ public class InvoiceDetails
         ZIP = "0000";
     }
         
-    // Method to round a float to the nearest 0.05
+    /// <summary>
+    /// Rounds a given value to the nearest 0.05 (5 Rappen).
+    /// This method multiplies the input value by 20 to shift the decimal place,
+    /// rounds the result to the nearest integer using the MidpointRounding.AwayFromZero strategy,
+    /// and then divides the result by 20 to shift the decimal place back, achieving rounding to the nearest 0.05.
+    /// </summary>
+    /// <param name="value">The value to be rounded.</param>
+    /// <returns>The value rounded to the nearest 0.05.</returns>
     private static float RoundToNearest5Rappen(float value)
     {
         return (float)(Math.Round(value * 20, MidpointRounding.AwayFromZero) / 20.0);
     }
 
-    // Method to format the float value as currency with two decimal places and thousands separator
+    /// <summary>
+    /// Formats a float value as a currency string with two decimal places and a thousands separator.
+    /// This method uses the "de-CH" (Swiss German) culture to format the value according to Swiss currency conventions.
+    /// </summary>
+    /// <param name="value">The float value to be formatted as currency.</param>
+    /// <returns>A string representing the formatted currency value.</returns>
     public string FormatCurrency(float value)
     {
         return string.Format(CultureInfo.CreateSpecificCulture("de-CH"), "{0:N2}", value);

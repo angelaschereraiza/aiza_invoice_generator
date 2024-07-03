@@ -137,12 +137,12 @@ public static class InvoiceGenerator
         // Set up the process start information
         ProcessStartInfo startInfo = new ProcessStartInfo
         {
-            FileName = "soffice",
+            FileName = @"C:\Program Files\LibreOffice\program\soffice.exe",
             Arguments = $"--headless --convert-to pdf \"{outputPath}\" --outdir \"{Path.GetDirectoryName(pdfOutputPath)}\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true,
-            UseShellExecute = false
+            UseShellExecute = false,
         };
 
         try
