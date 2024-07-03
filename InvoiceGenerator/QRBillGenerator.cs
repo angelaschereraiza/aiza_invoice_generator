@@ -1,10 +1,15 @@
-using System;
-using System.IO;
 using PdfSharp.Pdf;
 using PdfSharp.Drawing;
 using Codecrete.SwissQRBill.Generator;
 using SkiaSharp;
+using System;
+using System.IO;
 using Svg.Skia;
+using Aspose.Html;
+using Aspose.Html.Dom.Svg;
+using Aspose.Html.Converters;
+using Aspose.Html.Saving;
+using Aspose.Html.Rendering.Image;
 
 public class QRBillGenerator
 {
@@ -48,46 +53,84 @@ public class QRBillGenerator
         // Generate QR bill
         byte[] svgBytes = QRBill.Generate(bill);
 
-        // Save generated SVG file (optional, for debugging purposes)
         const string svgPath = "qrbill.svg";
+        const string pngPath = "qrbill.png";
+
+        // Save generated SVG file
         File.WriteAllBytes(svgPath, svgBytes);
-        Console.WriteLine($"QR bill saved at {Path.GetFullPath(svgPath)}");
 
-        // Convert SVG to PDF and embed in PDF
-        const string pdfPath = "qrbill.pdf";
-        using (PdfDocument document = new PdfDocument())
+        // Convert SVG to PNG and saves PNG
+        Converter.ConvertSVG(new SVGDocument(svgPath), new ImageSaveOptions(ImageFormat.Png), pngPath);
+
+        // Load the SVG into an SKPicture
+        // SKSvg svg = new SKSvg();
+        // using (var stream = new MemoryStream(svgBytes))
+        // {
+        //     svg.Load(stream);
+        // }
+
+        // if (svg.Picture == null)
+        // {
+        //     throw new InvalidOperationException("Failed to load the SVG picture.");
+        // }
+
+        // // Convert SKPicture to SKImage with proper font handling
+        // SKImageInfo info = new SKImageInfo((int)svg.Picture.CullRect.Width, (int)svg.Picture.CullRect.Height);
+        // using (SKSurface surface = SKSurface.Create(info))
+        // {
+        //     SKCanvas canvas = surface.Canvas;
+        //     canvas.Clear(SKColors.Transparent);
+        //     canvas.DrawPicture(svg.Picture);
+
+        //     // Load and set the desired fonts
+        //     using (var fontStream = File.OpenRead("Helvetica.ttf"))
+        //     {
+        //         var typeface = SKTypeface.FromStream(fontStream);
+        //         canvas.DrawPicture(svg.Picture, new SKPaint { Typeface = typeface });
+        //     }
+
+        //     SKImage qrImage = surface.Snapshot();
+
+        //     // Save SKImage to a temporary PNG file
+        //     using (SKData pngData = qrImage.Encode(SKEncodedImageFormat.Png, 200))
+        //     {
+        //         using (FileStream fs = File.OpenWrite(pngPath))
+        //         {
+        //             pngData.SaveTo(fs);
+        //         }
+        //     }
+        //}
+
+        // Embed the QR code image into the PDF
+        EmbedQRInPDF(pdfOutputPath, pngPath);
+
+        // Delete temporary files
+        File.Delete(pngPath);
+        File.Delete(svgPath);
+    }
+
+    private void EmbedQRInPDF(string pdfOutputPath, string qrImagePath)
+    {
+        using (PdfDocument document = PdfSharp.Pdf.IO.PdfReader.Open(pdfOutputPath, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Modify))
         {
-            PdfPage page = document.AddPage();
+            // Assume that the QR code should be added to the last page
+            PdfPage page = document.Pages[document.Pages.Count - 1];
+
             XGraphics gfx = XGraphics.FromPdfPage(page);
-            using (var svgStream = new MemoryStream(svgBytes))
-            {
-                var skSvg = new SKSvg();
-                skSvg.Load(svgStream);
 
-                // Create a bitmap and draw the SVG onto it
-                int width = (int)page.Width;
-                int height = (int)page.Height;
-                using (var bitmap = new SKBitmap(width, height))
-                using (var canvas = new SKCanvas(bitmap))
-                {
-                    canvas.Clear(SKColors.White);
-                    canvas.DrawPicture(skSvg.Picture);
-                    canvas.Flush();
+            // Load the QR code image
+            XImage qrImage = XImage.FromFile(qrImagePath);
 
-                    // Encode the bitmap to a PNG format
-                    using (var imageStream = new MemoryStream())
-                    {
-                        bitmap.Encode(imageStream, SKEncodedImageFormat.Png, 100);
-                        imageStream.Position = 0;
+            // Define the position and size for the QR code image
+            double x = 0; // Adjust the X position as needed
+            double y = page.Height.Point - (qrImage.PixelHeight * (page.Width.Point / qrImage.PixelWidth)); // Adjust the Y position as needed
+            double width = page.Width.Point;
+            double height = qrImage.PixelHeight * (page.Width.Point / qrImage.PixelWidth); // Maintain aspect ratio
 
-                        // Load the image from the memory stream
-                        XImage image = XImage.FromStream(imageStream);
-                        gfx.DrawImage(image, 0, 0, page.Width.Point, page.Height.Point);
-                    }
-                }
-            }
+            gfx.DrawImage(qrImage, x, y, width, height);
+
+            // Save the updated PDF
             document.Save(pdfOutputPath);
-            Console.WriteLine($"PDF saved at {Path.GetFullPath(pdfOutputPath)}");
         }
     }
 }

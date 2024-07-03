@@ -21,7 +21,7 @@ public class InvoiceDetails
     public InvoiceDetails()
     {
         Date = DateTime.Now.ToString("dd.MM.yyyy");
-        HourlyWage = 150;
+        HourlyWage = 110;
         MWSTRate = 8.1f;
 
         // Determine the invoice period based on the current date
