@@ -1,23 +1,26 @@
 ﻿using System.Diagnostics;
 using System.IO.Compression;
 using System.Text;
+using InvoiceGenerator.Models;
+
+namespace InvoiceGenerator.Utilities;
 
 public static class InvoiceGenerator
 {
     public static void Run()
     {
-        // Create an instance of InvoiceDetails
-        InvoiceDetails invoiceDetails = new InvoiceDetails();
+        // Create an instance of Invoice
+        Invoice invoice = new();
 
-        if (invoiceDetails.Hours == 0)
+        if (invoice.Hours == 0)
         {
             Console.WriteLine("Hours cannot be null or empty.");
             return;
         }
 
         // Define paths for the template and the output file
-        string templatePath = Path.GetFullPath("InvoiceTemplate.odt");
-        string outputPath = Path.GetFullPath($"Rechnung_{invoiceDetails.Recipient.Replace(" ", "_")}_{invoiceDetails.Date.Replace(".", "_")}.odt");
+        string templatePath = Path.GetFullPath("src/Templates/InvoiceTemplate.odt");
+        string outputPath = Path.GetFullPath($"src/Outputs/Rechnung_{invoice.Recipient.Replace(" ", "_")}_{invoice.Date.Replace(".", "_")}.odt");
 
         // Ensure the template file exists
         if (!File.Exists(templatePath))
@@ -30,7 +33,7 @@ public static class InvoiceGenerator
         File.Copy(templatePath, outputPath, true);
 
         // Modify the content.xml inside the ODT file
-        if (!ModifyContentXml(outputPath, invoiceDetails))
+        if (!ModifyContentXml(outputPath, invoice))
         {
             Console.WriteLine("Failed to modify ODT file.");
             return;
@@ -57,8 +60,8 @@ public static class InvoiceGenerator
         File.Delete(outputPath);
 
         // Generate the QR Code and add it to the PDF
-        QRBillGenerator qrBillGenerator = new QRBillGenerator();
-        qrBillGenerator.GenerateQRBill(pdfOutputPath, invoiceDetails);
+        QRBillGenerator qrBillGenerator = new();
+        qrBillGenerator.GenerateQRBill(pdfOutputPath, invoice);
 
         Console.WriteLine("The invoice was created successfully.");
     }
@@ -69,9 +72,9 @@ public static class InvoiceGenerator
     /// with the actual invoice details, and then updates the content.xml file within the ODT archive.
     /// </summary>
     /// <param name="outputPath">The file path of the ODT document to modify.</param>
-    /// <param name="details">The InvoiceDetails object containing invoice information.</param>
+    /// <param name="invoice">The Invoice object containing invoice information.</param>
     /// <returns>Returns true if the content.xml file was modified successfully; otherwise, false.</returns>
-    private static bool ModifyContentXml(string outputPath, InvoiceDetails details)
+    public static bool ModifyContentXml(string outputPath, Invoice invoice)
     {
         try
         {
@@ -86,31 +89,31 @@ public static class InvoiceGenerator
 
                 // Read the content of content.xml
                 string content;
-                using (StreamReader sr = new StreamReader(entry.Open(), Encoding.UTF8))
+                using (StreamReader sr = new(entry.Open(), Encoding.UTF8))
                 {
                     content = sr.ReadToEnd();
                 }
 
                 // Replace placeholders with actual values
-                content = content.Replace("[Date]", details.Date)
-                                 .Replace("[FirstDateMonth]", details.FirstDateMonth)
-                                 .Replace("[HourlyWage]", details.FormatCurrency(details.HourlyWage))
-                                 .Replace("[Hours]", details.Hours.ToString())
-                                 .Replace("[LastDateMonth]", details.LastDateMonth)
-                                 .Replace("[MonthYear]", details.MonthYear)
-                                 .Replace("[MWSTRate]", details.MWSTRate.ToString())
-                                 .Replace("[MWSTPrice]", details.FormatCurrency(details.MWSTPrice))
-                                 .Replace("[Place]", $"{details.ZIP} {details.Place}")
-                                 .Replace("[Recipient]", details.Recipient)
-                                 .Replace("[Street]", details.Street)
-                                 .Replace("[TotalPrice]", details.FormatCurrency(details.TotalPrice))
-                                 .Replace("[TotalPriceInclMWST]", details.FormatCurrency(details.TotalPriceInclMWST));
+                content = content.Replace("[Date]", invoice.Date)
+                                 .Replace("[FirstDateMonth]", invoice.FirstDateMonth)
+                                 .Replace("[HourlyWage]", invoice.FormatCurrency(invoice.HourlyWage))
+                                 .Replace("[Hours]", invoice.Hours.ToString())
+                                 .Replace("[LastDateMonth]", invoice.LastDateMonth)
+                                 .Replace("[MonthYear]", invoice.MonthYear)
+                                 .Replace("[MWSTRate]", invoice.MWSTRate.ToString())
+                                 .Replace("[MWSTPrice]", invoice.FormatCurrency(invoice.MWSTPrice))
+                                 .Replace("[Place]", $"{invoice.ZIP} {invoice.Place}")
+                                 .Replace("[Recipient]", invoice.Recipient)
+                                 .Replace("[Street]", invoice.Street)
+                                 .Replace("[TotalPrice]", invoice.FormatCurrency(invoice.TotalPrice))
+                                 .Replace("[TotalPriceInclMWST]", invoice.FormatCurrency(invoice.TotalPriceInclMWST));
 
                 // Delete the old entry and create a new one with the updated content
                 entry.Delete();
                 ZipArchiveEntry newEntry = archive.CreateEntry("content.xml");
                 using (Stream entryStream = newEntry.Open())
-                using (StreamWriter sw = new StreamWriter(entryStream, Encoding.UTF8))
+                using (StreamWriter sw = new(entryStream, Encoding.UTF8))
                 {
                     sw.Write(content);
                 }
@@ -132,10 +135,10 @@ public static class InvoiceGenerator
     /// <param name="outputPath">The file path of the ODT document to convert.</param>
     /// <param name="pdfOutputPath">The file path where the converted PDF document will be saved.</param>
     /// <returns>Returns true if the PDF file was created successfully; otherwise, false.</returns>
-    private static bool ConvertOdtToPDF(string outputPath, string pdfOutputPath)
+    public static bool ConvertOdtToPDF(string outputPath, string pdfOutputPath)
     {
         // Set up the process start information
-        ProcessStartInfo startInfo = new ProcessStartInfo
+        ProcessStartInfo startInfo = new()
         {
             FileName = @"C:\Program Files\LibreOffice\program\soffice.exe",
             Arguments = $"--headless --convert-to pdf \"{outputPath}\" --outdir \"{Path.GetDirectoryName(pdfOutputPath)}\"",

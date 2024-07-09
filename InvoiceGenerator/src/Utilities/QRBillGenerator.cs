@@ -3,6 +3,9 @@ using PdfSharp.Drawing;
 using Codecrete.SwissQRBill.Generator;
 using SkiaSharp;
 using Svg.Skia;
+using InvoiceGenerator.Models;
+
+namespace InvoiceGenerator.Utilities;
 
 public class QRBillGenerator
 {
@@ -12,11 +15,11 @@ public class QRBillGenerator
     /// and embeds this image at a specified position in the provided PDF document.
     /// </summary>
     /// <param name="pdfOutputPath">The file path of the PDF document to modify.</param>
-    /// <param name="invoiceDetails">The InvoiceDetails object containing invoice information.</param>
-    public void GenerateQRBill(string pdfOutputPath, InvoiceDetails invoiceDetails)
+    /// <param name="invoice">The Invoice object containing invoice information.</param>
+    public void GenerateQRBill(string pdfOutputPath, Invoice invoice)
     {
         // Create the QR bill data
-        Bill bill = new Bill
+        Bill bill = new()
         {
             Account = "CH23 8080 8007 6888 9345 2",
             Creditor = new Address
@@ -27,14 +30,14 @@ public class QRBillGenerator
                 Town = "Zollikofen",
                 CountryCode = "CH"
             },
-            Amount = (decimal?)invoiceDetails.TotalPriceInclMWST,
+            Amount = (decimal?)invoice.TotalPriceInclMWST,
             Currency = "CHF",
             Debtor = new Address
             {
-                Name = invoiceDetails.Recipient,
-                Street = invoiceDetails.Street,
-                PostalCode = invoiceDetails.ZIP,
-                Town = invoiceDetails.Place,
+                Name = invoice.Recipient,
+                Street = invoice.Street,
+                PostalCode = invoice.ZIP,
+                Town = invoice.Place,
                 CountryCode = "CH"
             },
             Format = new BillFormat
@@ -70,11 +73,11 @@ public class QRBillGenerator
     /// </summary>
     /// <param name="svgPath">The file path of the input SVG file.</param>
     /// <param name="pngPath">The file path where the output PNG file will be saved.</param>
-    private void ConvertSvgToPng(string svgPath, string pngPath)
+    public void ConvertSvgToPng(string svgPath, string pngPath)
     {
         // Load the SVG file
-        SKSvg svg = new SKSvg();
-        using (var stream = new FileStream(svgPath, FileMode.Open, FileAccess.Read))
+        SKSvg svg = new();
+        using (FileStream stream = new(svgPath, FileMode.Open, FileAccess.Read))
         {
             svg.Load(stream);
         }
@@ -110,7 +113,7 @@ public class QRBillGenerator
     /// </summary>
     /// <param name="pdfOutputPath">The file path of the existing PDF document to modify.</param>
     /// <param name="qrImagePath">The file path of the QR code image to embed.</param>
-    private void EmbedQRInPDF(string pdfOutputPath, string qrImagePath)
+    public void EmbedQRInPDF(string pdfOutputPath, string qrImagePath)
     {
         using (PdfDocument document = PdfSharp.Pdf.IO.PdfReader.Open(pdfOutputPath, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Modify))
         {

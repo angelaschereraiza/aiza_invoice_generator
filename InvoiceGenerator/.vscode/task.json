@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+      {
+          "label": "test",
+          "command": "dotnet",
+          "type": "shell",
+          "args": [
+              "test",
+              "${workspaceFolder}/tests/InvoiceGenerator.Tests/InvoiceGenerator.Tests.csproj"
+          ],
+          "group": "test",
+          "problemMatcher": "$msCompile",
+          "presentation": {
+              "reveal": "silent"
+          }
+      }
+  ]
+}

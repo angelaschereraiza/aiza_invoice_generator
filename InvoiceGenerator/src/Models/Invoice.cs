@@ -1,6 +1,8 @@
 using System.Globalization;
 
-public class InvoiceDetails
+namespace InvoiceGenerator.Models;
+
+public class Invoice
 {
     // Public properties representing various details of an invoice
     public string Date { get; }               // The date of the invoice
@@ -18,13 +20,13 @@ public class InvoiceDetails
     public float TotalPriceInclMWST { get; }  // The total price including MWST
     public string ZIP { get; }                // The ZIP code of the recipient
 
-    public InvoiceDetails()
+    public Invoice()
     {
         // Set the current date as the invoice date
         Date = DateTime.Now.ToString("dd.MM.yyyy");
 
         // Set a fixed hourly wage and MWST rate
-        HourlyWage = 150;
+        HourlyWage = 1;
         MWSTRate = 8.1f;
 
         // Determine the invoice period based on the current date
@@ -71,7 +73,7 @@ public class InvoiceDetails
     /// </summary>
     /// <param name="value">The value to be rounded.</param>
     /// <returns>The value rounded to the nearest 0.05.</returns>
-    private static float RoundToNearest5Rappen(float value)
+    public static float RoundToNearest5Rappen(float value)
     {
         return (float)(Math.Round(value * 20, MidpointRounding.AwayFromZero) / 20.0);
     }

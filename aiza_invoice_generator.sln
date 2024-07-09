@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoiceGenerator", "InvoiceGenerator\InvoiceGenerator.csproj", "{FEC47FE8-A59F-4951-9D7C-7975BDC7D977}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InvoiceGenerator", "InvoiceGenerator.csproj", "{FEC47FE8-A59F-4951-9D7C-7975BDC7D977}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

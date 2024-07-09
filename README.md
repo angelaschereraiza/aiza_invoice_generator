@@ -8,7 +8,7 @@ The Aiza Invoice Generator automates the creation of PDF invoices for Aiza GmbH,
 ## Step 1: Clone the Repository
 ```bash
 git clone https://github.com/angelaschereraiza/aiza_invoice_generator.git
-cd aiza-invoice-generator
+cd aiza-invoice-generator/InvoiceGenerator
 ```
 
 ## Step 2: Restore Dependencies
@@ -22,6 +22,11 @@ dotnet build
 dotnet run
 ```
 
+## Step 4: Test
+```bash
+dotnet test
+```
+
 ## Dependencies
 The project relies on the following libraries:
 
@@ -29,6 +34,8 @@ The project relies on the following libraries:
 * PdfSharp
 * SkiaSharp
 * Svg.Skia
+* NUnit3TestAdapter
+* NUnit
 
 All dependencies are specified in the InvoiceGenerator.csproj file and will be restored when you run:
 
