@@ -19,8 +19,8 @@ public static class InvoiceGenerator
         }
 
         // Define paths for the template and the output file
-        string templatePath = Path.GetFullPath("src/Templates/InvoiceTemplate.odt");
-        string outputPath = Path.GetFullPath($"src/Outputs/Rechnung_{invoice.Recipient.Replace(" ", "_")}_{invoice.Date.Replace(".", "_")}.odt");
+        string templatePath = Path.GetFullPath("Templates/InvoiceTemplate.odt");
+        string outputPath = Path.GetFullPath($"Outputs/Rechnung_{invoice.Recipient.Replace(" ", "_")}_{invoice.Date.Replace(".", "_")}.odt");
 
         // Ensure the template file exists
         if (!File.Exists(templatePath))

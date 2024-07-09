@@ -8,7 +8,7 @@ The Aiza Invoice Generator automates the creation of PDF invoices for Aiza GmbH,
 ## Step 1: Clone the Repository
 ```bash
 git clone https://github.com/angelaschereraiza/aiza_invoice_generator.git
-cd aiza-invoice-generator/InvoiceGenerator
+cd aiza-invoice-generator/src
 ```
 
 ## Step 2: Restore Dependencies
@@ -24,6 +24,7 @@ dotnet run
 
 ## Step 4: Test
 ```bash
+cd ../tests
 dotnet test
 ```
 

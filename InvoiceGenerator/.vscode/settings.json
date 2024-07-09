@@ -1,5 +1,0 @@
-{
-    "dotnetTestExplorer.testProjectPath": "tests/**/*.csproj",
-    "dotnetTestExplorer.testArguments": "--logger:trx",
-    "dotnetTestExplorer.testFramework": "nunit"
-}
