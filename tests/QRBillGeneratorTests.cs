@@ -1,6 +1,8 @@
 using NUnit.Framework;
 using InvoiceGenerator.Models;
 using InvoiceGenerator.Utilities;
+using System.IO;
+using System;
 
 namespace InvoiceGenerator.Tests;
 

@@ -1,5 +1,7 @@
 using NUnit.Framework;
 using InvoiceGenerator.Models;
+using System.IO;
+using System;
 
 namespace InvoiceGenerator.Tests;
 
