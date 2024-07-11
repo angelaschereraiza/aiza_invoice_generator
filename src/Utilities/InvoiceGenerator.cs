@@ -10,8 +10,6 @@ public static class InvoiceGenerator
     public static void GenerateInvoice()
     {
         // Create an instance of Invoice
-        StringReader inputReader = new("1");
-        Console.SetIn(inputReader);
         Invoice invoice = new Invoice();
 
         if (invoice.Hours == 0)
