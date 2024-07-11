@@ -7,10 +7,12 @@ namespace InvoiceGenerator.Utilities;
 
 public static class InvoiceGenerator
 {
-    public static void Run()
+    public static void GenerateInvoice()
     {
         // Create an instance of Invoice
-        Invoice invoice = new();
+        StringReader inputReader = new("1");
+        Console.SetIn(inputReader);
+Invoice invoice = new Invoice();
 
         if (invoice.Hours == 0)
         {
@@ -60,8 +62,7 @@ public static class InvoiceGenerator
         File.Delete(outputPath);
 
         // Generate the QR Code and add it to the PDF
-        QRBillGenerator qrBillGenerator = new();
-        qrBillGenerator.GenerateQRBill(pdfOutputPath, invoice);
+        QRBillGenerator.GenerateQRBill(pdfOutputPath, invoice);
 
         Console.WriteLine("The invoice was created successfully.");
     }

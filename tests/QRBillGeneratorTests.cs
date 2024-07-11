@@ -3,29 +3,31 @@ using InvoiceGenerator.Models;
 using InvoiceGenerator.Utilities;
 using System.IO;
 using System;
+using PdfSharp.Pdf;
+using PdfSharp.Drawing;
 
 namespace InvoiceGenerator.Tests;
 
 [TestFixture]
 public class QRBillGeneratorTests
 {
-    private QRBillGenerator _qrBillGenerator = new();
-
-    [SetUp]
-    public void Setup()
-    {
-        _qrBillGenerator = new QRBillGenerator();
-    }
-
     [Test]
     public void GenerateQRBillValidInvoiceGeneratesPDFWithQRCode()
     {
         // Arrange
+        PdfDocument document = new PdfDocument();
+        document.AddPage();
         string pdfOutputPath = "test.pdf";
-        var invoice = new Invoice();
+        document.Save(pdfOutputPath);
+        document.Close();
+        
+        // Simulate user input of 1 hours
+        StringReader inputReader = new("1");
+        Console.SetIn(inputReader);
+        Invoice invoice = new Invoice();
 
         // Act
-        _qrBillGenerator.GenerateQRBill(pdfOutputPath, invoice);
+        QRBillGenerator.GenerateQRBill(pdfOutputPath, invoice);
 
         // Assert
         Assert.That(File.Exists(pdfOutputPath), "PDF file should be generated.");
@@ -46,7 +48,7 @@ public class QRBillGeneratorTests
         File.WriteAllText(svgPath, svgContent);
 
         // Act
-        _qrBillGenerator.ConvertSvgToPng(svgPath, pngPath);
+        QRBillGenerator.ConvertSvgToPng(svgPath, pngPath);
 
         // Assert
         Assert.That(File.Exists(pngPath), "PNG file should be generated.");

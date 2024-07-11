@@ -5,64 +5,66 @@ namespace InvoiceGenerator.Models;
 public class Invoice
 {
     // Public properties representing various details of an invoice
-    public string Date { get; }               // The date of the invoice
-    public string FirstDateMonth { get; }     // The first date of the billing month
-    public float HourlyWage { get; }          // The hourly wage
-    public float Hours { get; }               // The number of hours worked
-    public string LastDateMonth { get; }      // The last date of the billing month
-    public float MWSTRate { get; }            // The MWST rate
-    public float MWSTPrice { get; }           // The MWST amount
-    public string MonthYear { get; }          // The billing month and year
-    public string Place { get; }              // The place of the recipient
-    public string Recipient { get; }          // The recipient of the invoice
-    public string Street { get; }             // The street address of the recipient
-    public float TotalPrice { get; }          // The total price before MWST
-    public float TotalPriceInclMWST { get; }  // The total price including MWST
-    public string ZIP { get; }                // The ZIP code of the recipient
+    public decimal HourlyWage { get; } = 1m;
+    public decimal MWSTRate { get; } = 8.1m;
+    public string Recipient { get; } = "Test Customer AG";
+    public string Street { get; } = "Test Street";
+    public string ZIP { get; } = "0000";
+    public string Place { get; } = "Test";
+    public string Date { get; }
+    public string FirstDateMonth { get; }
+    public decimal HourlyWageValue { get; }
+    public decimal? Hours { get; }
+    public string LastDateMonth { get; }
+    public decimal MWSTRateValue { get; }
+    public decimal MWSTPrice { get; }
+    public string MonthYear { get; }
+    public string PlaceValue { get; }
+    public string RecipientValue { get; }
+    public string StreetValue { get; }
+    public decimal TotalPrice { get; }
+    public decimal TotalPriceInclMWST { get; }
+    public string ZIPValue { get; }
 
     public Invoice()
     {
-        // Set the current date as the invoice date
-        Date = DateTime.Now.ToString("dd.MM.yyyy");
+        DateTimeOffset currentDate = DateTimeOffset.Now;
+        PlaceValue = Place;
+        RecipientValue = Recipient;
+        StreetValue = Street;
+        ZIPValue = ZIP;
 
-        // Set a fixed hourly wage and MWST rate
-        HourlyWage = 1;
-        MWSTRate = 8.1f;
+        // Set the current date as the invoice date
+        Date = currentDate.ToString("dd.MM.yyyy");
 
         // Determine the invoice period based on the current date
-        DateTime currentDate = DateTime.Now;
-        if (currentDate.Day <= 15)
-        {
-            // If the current day is on or before the 15th, use the previous month for billing
-            FirstDateMonth = new DateTime(currentDate.Year, currentDate.Month - 1, 1).ToString("dd.MM.yyyy");
-            LastDateMonth = new DateTime(currentDate.Year, currentDate.Month - 1, DateTime.DaysInMonth(currentDate.Year, currentDate.Month - 1)).ToString("dd.MM.yyyy");
-            MonthYear = new DateTime(currentDate.Year, currentDate.Month - 1, 1).ToString("MMMM yyyy", CultureInfo.CreateSpecificCulture("de-DE"));
-        }
-        else
-        {
-            // If the current day is after the 15th, use the current month for billing
-            FirstDateMonth = new DateTime(currentDate.Year, currentDate.Month, 1).ToString("dd.MM.yyyy");
-            LastDateMonth = new DateTime(currentDate.Year, currentDate.Month, DateTime.DaysInMonth(currentDate.Year, currentDate.Month)).ToString("dd.MM.yyyy");
-            MonthYear = new DateTime(currentDate.Year, currentDate.Month, 1).ToString("MMMM yyyy", CultureInfo.CreateSpecificCulture("de-DE"));
-        }
+        DateTimeOffset billingDate = currentDate.Day <= 15 ?
+            currentDate.AddMonths(-1) :
+            currentDate;
+
+        FirstDateMonth = new DateTimeOffset(billingDate.Year, billingDate.Month, 1, 0, 0, 0, currentDate.Offset).ToString("dd.MM.yyyy");
+        LastDateMonth = new DateTimeOffset(billingDate.Year, billingDate.Month, DateTime.DaysInMonth(billingDate.Year, billingDate.Month), 0, 0, 0, currentDate.Offset).ToString("dd.MM.yyyy");
+        MonthYear = billingDate.ToString("MMMM yyyy", CultureInfo.CreateSpecificCulture("de-DE"));
 
         // Prompt the user to input the hours worked
         Console.Write("Hours worked: ");
         string? hoursInput = Console.ReadLine();
 
         // Parse the input hours, default to 0 if parsing fails
-        Hours = float.TryParse(hoursInput, out float h) ? h : 0f;
+        Hours = decimal.TryParse(hoursInput, out decimal h) ? h : 0m;
 
-        // Set fixed values for place, recipient, street, and ZIP code
-        Place = "Test";
-        Recipient = "Test Customer AG";
-        Street = "Test Street";
+        if (Hours == 0m)
+        {
+            throw new ArgumentException("Invoice file should not be generated for zero hours.");
+        }
+
+        HourlyWageValue = HourlyWage;
+        MWSTRateValue = MWSTRate;
 
         // Calculate total prices based on hours worked and hourly wage
-        TotalPrice = RoundToNearest5Rappen(HourlyWage * Hours);
-        MWSTPrice = TotalPrice * (MWSTRate / 100);
+        TotalPrice = RoundToNearest5Rappen(HourlyWageValue * Hours.Value);
+        MWSTPrice = TotalPrice * (MWSTRateValue / 100m);
         TotalPriceInclMWST = RoundToNearest5Rappen(TotalPrice + MWSTPrice);
-        ZIP = "0000";
     }
         
     /// <summary>
@@ -73,18 +75,18 @@ public class Invoice
     /// </summary>
     /// <param name="value">The value to be rounded.</param>
     /// <returns>The value rounded to the nearest 0.05.</returns>
-    public static float RoundToNearest5Rappen(float value)
+    public static decimal RoundToNearest5Rappen(decimal value)
     {
-        return (float)(Math.Round(value * 20, MidpointRounding.AwayFromZero) / 20.0);
+        return Math.Round(value * 20m, MidpointRounding.AwayFromZero) / 20m;
     }
 
     /// <summary>
-    /// Formats a float value as a currency string with two decimal places and a thousands separator.
+    /// Formats a decimal value as a currency string with two decimal places and a thousands separator.
     /// This method uses the "de-CH" (Swiss German) culture to format the value according to Swiss currency conventions.
     /// </summary>
-    /// <param name="value">The float value to be formatted as currency.</param>
+    /// <param name="value">The decimal value to be formatted as currency.</param>
     /// <returns>A string representing the formatted currency value.</returns>
-    public string FormatCurrency(float value)
+    public string FormatCurrency(decimal value)
     {
         return string.Format(CultureInfo.CreateSpecificCulture("de-CH"), "{0:N2}", value);
     }

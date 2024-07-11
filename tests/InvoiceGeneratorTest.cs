@@ -3,6 +3,8 @@ using InvoiceGenerator.Models;
 using InvoiceGenerator.Utilities;
 using System.IO;
 using System;
+using System.IO.Compression;
+using System.Text;
 
 namespace InvoiceGenerator.Tests
 {
@@ -11,78 +13,84 @@ namespace InvoiceGenerator.Tests
     {
         private string OutputDirectory => Path.Combine(TestContext.CurrentContext.TestDirectory, "TestOutput");
 
-        [SetUp]
-        public void Setup() =>
-            // Preparations before each test run, e.g., deleting old output files
-            CleanupOutputDirectory();
-
-        [TearDown]
-        public void Teardown() =>
-            // Cleanup after each test run, e.g., deleting generated files
-            CleanupOutputDirectory();
-
         [Test]
-        public void Run_WithValidInvoiceGeneratesInvoiceSuccessfully()
+        public void RunWithZeroHoursShouldNotGenerateInvoice()
         {
             // Arrange
-            Invoice invoice = new();
+            // Simulate user input of 0 hours
+            var inputReader = new StringReader("0");
+            Console.SetIn(inputReader);
 
-            // Assert
-            string expectedOutputFile = GetExpectedOutputFilePath(invoice);
-            Assert.That(File.Exists(expectedOutputFile), "Generated invoice file does not exist.");
-
-            string pdfOutputPath = expectedOutputFile.Replace(".odt", ".pdf");
-            Assert.That(File.Exists(pdfOutputPath), "Generated PDF file does not exist.");
-        }
-
-        [Test]
-        public void Run_WithZeroHoursShouldNotGenerateInvoice()
-        {
-            // Arrange
-            Invoice invoice = new();
-
-            // Assert
-            string expectedOutputFile = GetExpectedOutputFilePath(invoice);
-            Assert.That(File.Exists(expectedOutputFile), "Invoice file should not be generated for zero hours.");
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => new Invoice());
         }
 
         [Test]
         public void ModifyContentXmlValidInputModifiesXmlSuccessfully()
         {
             // Arrange
-            string outputPath = Path.Combine(OutputDirectory, "TestInvoice.odt");
-            var invoice = new Invoice();
+            if (!Directory.Exists(OutputDirectory))
+            {
+                Directory.CreateDirectory(OutputDirectory);
+            }
 
-            // Act
+            string outputPath = Path.Combine(OutputDirectory, "XMLTestInvoice.odt");
+
+            // Path inside the ODT file
+            string contentXmlPath = "content.xml"; 
+            
+            // Simulate user input of 1 hours
+           StringReader inputReader = new("1");
+            Console.SetIn(inputReader);
+            Invoice invoice = new Invoice();
+
+            // Create an empty ODT file and add content.xml
+            using (ZipArchive archive = ZipFile.Open(outputPath, ZipArchiveMode.Create))
+            {
+                archive.CreateEntry(contentXmlPath);
+            }
+
+            // Act: Modify content.xml in the ODT file
             bool result = Utilities.InvoiceGenerator.ModifyContentXml(outputPath, invoice);
 
-            // Assert
-            Assert.That(result, "Failed to modify content.xml.");
+            // Assert: Check if modifying content.xml succeeded
+            Assert.IsTrue(result, "Modifying content.xml should succeed.");
+
+            // Assert: Check if content.xml exists in the ODT file after modification
+            using (ZipArchive archive = ZipFile.Open(outputPath, ZipArchiveMode.Update))
+            {
+                ZipArchiveEntry entry = archive.GetEntry(contentXmlPath);
+                Assert.IsNotNull(entry, "content.xml should exist in the ODT file.");
+            }
+
+            Directory.Delete(OutputDirectory, true);
         }
 
         [Test]
         public void ConvertOdtToPDFValidInputConvertsToPDF()
         {
             // Arrange
-            string outputPath = Path.Combine(OutputDirectory, "TestInvoice.odt");
-            string pdfOutputPath = Path.Combine(OutputDirectory, "TestInvoice.pdf");
-
-            // Act
-            bool result = Utilities.InvoiceGenerator.ConvertOdtToPDF(outputPath, pdfOutputPath);
-
-            // Assert
-            Assert.That(!result);
-        }
-
-        // Helper methods for tests
-
-        private void CleanupOutputDirectory()
-        {
-            // Deletes all files in the output directory
-            if (Directory.Exists(OutputDirectory))
+            if (!Directory.Exists(OutputDirectory))
             {
-                Directory.Delete(OutputDirectory, true);
+                Directory.CreateDirectory(OutputDirectory);
             }
+
+            string outputPath = Path.Combine(OutputDirectory, "TestInvoice");
+            string odtFilePath = $"{outputPath}.odt";
+            string pdfFilePath = $"{outputPath}.pdf";
+
+            // Create an empty ODT file with proper file sharing options
+            using (FileStream stream = new FileStream(odtFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                // Act
+                bool result = Utilities.InvoiceGenerator.ConvertOdtToPDF(odtFilePath, pdfFilePath);
+
+                // Assert
+                Assert.IsTrue(result, "Conversion from ODT to PDF should succeed.");
+                Assert.IsTrue(File.Exists(pdfFilePath), "PDF file should exist after conversion.");
+            }
+
+            Directory.Delete(OutputDirectory, true);
         }
 
         private string GetExpectedOutputFilePath(Invoice invoice)

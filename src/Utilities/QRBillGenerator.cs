@@ -7,7 +7,7 @@ using InvoiceGenerator.Models;
 
 namespace InvoiceGenerator.Utilities;
 
-public class QRBillGenerator
+public static class QRBillGenerator
 {
     /// <summary>
     /// Generates a QR code containing invoice information and embeds it into a PDF file.
@@ -16,7 +16,7 @@ public class QRBillGenerator
     /// </summary>
     /// <param name="pdfOutputPath">The file path of the PDF document to modify.</param>
     /// <param name="invoice">The Invoice object containing invoice information.</param>
-    public void GenerateQRBill(string pdfOutputPath, Invoice invoice)
+    public static void GenerateQRBill(string pdfOutputPath, Invoice invoice)
     {
         // Create the QR bill data
         Bill bill = new()
@@ -73,7 +73,7 @@ public class QRBillGenerator
     /// </summary>
     /// <param name="svgPath">The file path of the input SVG file.</param>
     /// <param name="pngPath">The file path where the output PNG file will be saved.</param>
-    public void ConvertSvgToPng(string svgPath, string pngPath)
+    public static void ConvertSvgToPng(string svgPath, string pngPath)
     {
         // Load the SVG file
         SKSvg svg = new();
@@ -113,7 +113,7 @@ public class QRBillGenerator
     /// </summary>
     /// <param name="pdfOutputPath">The file path of the existing PDF document to modify.</param>
     /// <param name="qrImagePath">The file path of the QR code image to embed.</param>
-    public void EmbedQRInPDF(string pdfOutputPath, string qrImagePath)
+    public static void EmbedQRInPDF(string pdfOutputPath, string qrImagePath)
     {
         using (PdfDocument document = PdfSharp.Pdf.IO.PdfReader.Open(pdfOutputPath, PdfSharp.Pdf.IO.PdfDocumentOpenMode.Modify))
         {

@@ -4,6 +4,6 @@ class Program
     {
         Console.WriteLine("Starting Invoice Generator...");
         
-        InvoiceGenerator.Utilities.InvoiceGenerator.Run();
+        InvoiceGenerator.Utilities.InvoiceGenerator.GenerateInvoice();
     }
 }
