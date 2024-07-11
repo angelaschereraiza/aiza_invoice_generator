@@ -30,7 +30,7 @@ public static class QRBillGenerator
                 Town = "Zollikofen",
                 CountryCode = "CH"
             },
-            Amount = (decimal?)invoice.TotalPriceInclMWST,
+            Amount = invoice.TotalPriceInclMWST,
             Currency = "CHF",
             Debtor = new Address
             {
