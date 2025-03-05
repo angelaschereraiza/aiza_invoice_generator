@@ -102,9 +102,9 @@ public static class InvoiceGenerator
                                  .Replace("[MonthYear]", invoice.MonthYear)
                                  .Replace("[MWSTRate]", invoice.MWSTRate.ToString())
                                  .Replace("[MWSTPrice]", invoice.FormatCurrency(invoice.MWSTPrice))
-                                 .Replace("[Place]", $"{invoice.ZIP} {invoice.Place}")
-                                 .Replace("[Recipient]", invoice.Recipient)
-                                 .Replace("[Street]", invoice.Street)
+                                 .Replace("[Place]", $"{invoice.SelectedRecipient.ZIP} {invoice.SelectedRecipient.Place}")
+                                 .Replace("[Recipient]", invoice.SelectedRecipient.Recipient)
+                                 .Replace("[Street]", invoice.SelectedRecipient.Street)
                                  .Replace("[TotalPrice]", invoice.FormatCurrency(invoice.TotalPrice))
                                  .Replace("[TotalPriceInclMWST]", invoice.FormatCurrency(invoice.TotalPriceInclMWST));
 

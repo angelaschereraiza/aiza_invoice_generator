@@ -1,0 +1,21 @@
+{
+    "MWSTRate": 8.1,
+    "Recipients": [
+        {
+            "Name": "Test Customer AG",
+            "Street": "Test Street",
+            "ZIP": "0000",
+            "Place": "Test",
+            "HourlyWage": 1.0,
+            "InclMWST": true
+        },
+        {
+            "Name": "Test Customer AG 2",
+            "Street": "Test Street",
+            "ZIP": "0000",
+            "Place": "Test",
+            "HourlyWage": 2.0,
+            "InclMWST": false
+        }
+    ]
+}
