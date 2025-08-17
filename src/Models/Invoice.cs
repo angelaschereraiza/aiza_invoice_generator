@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using Newtonsoft.Json;
 
 namespace InvoiceGenerator.Models
@@ -38,7 +34,7 @@ namespace InvoiceGenerator.Models
             Date = currentDate.ToString("dd.MM.yyyy");
 
             // Determine the billing period
-            DateTimeOffset billingDate = currentDate.Day <= 15 ? currentDate.AddMonths(-1) : currentDate;
+            DateTimeOffset billingDate = currentDate.AddMonths(-1);
             FirstDateMonth = new DateTimeOffset(billingDate.Year, billingDate.Month, 1, 0, 0, 0, currentDate.Offset).ToString("dd.MM.yyyy");
             LastDateMonth = new DateTimeOffset(billingDate.Year, billingDate.Month, DateTime.DaysInMonth(billingDate.Year, billingDate.Month), 0, 0, 0, currentDate.Offset).ToString("dd.MM.yyyy");
             MonthYear = billingDate.ToString("MMMM yyyy", CultureInfo.CreateSpecificCulture("de-DE"));
@@ -58,27 +54,30 @@ namespace InvoiceGenerator.Models
             }
 
             // Convert minutes to fractional hours
-            decimal totalWorkedTime = Hours.Value + (Minutes.Value / 60m);
+            Hours = Hours.Value + (Minutes.Value / 60m);
 
             // Calculate prices based on whether MWST is included in the hourly wage
             if (InclMWST)
             {
-                TotalPriceInclMWST = RoundToNearest5Rappen(SelectedRecipient.HourlyWage * totalWorkedTime);
+                TotalPriceInclMWST = RoundToNearest5Rappen(SelectedRecipient.HourlyWage * Hours.Value);
                 TotalPrice = TotalPriceInclMWST / (1 + (MWSTRate / 100m));
                 MWSTPrice = TotalPriceInclMWST - TotalPrice;
+                SelectedRecipient.HourlyWage = SelectedRecipient.HourlyWage / (1 + (MWSTRate / 100m));
             }
             else
             {
-                TotalPrice = RoundToNearest5Rappen(SelectedRecipient.HourlyWage * totalWorkedTime);
-                MWSTPrice = TotalPrice * (MWSTRate / 100m);
-                TotalPriceInclMWST = RoundToNearest5Rappen(TotalPrice + MWSTPrice);
+                TotalPrice = RoundToNearest5Rappen(SelectedRecipient.HourlyWage * Hours.Value);
+                MWSTPrice = TotalPrice * (MWSTRate / 100m) + SelectedRecipient.Expenses * (MWSTRate / 100m);
+                TotalPriceInclMWST = RoundToNearest5Rappen(TotalPrice + MWSTPrice + SelectedRecipient.Expenses);
             }
+
+            Hours = Math.Round(Hours.Value, 2);
         }
 
         // Loads configuration settings from a JSON file
-        priMWSTe static Config LoadConfig()
+        public static Config LoadConfig()
         {
-            string configPath = "src/Config/config.json";
+            string configPath = Path.Combine(Directory.GetCurrentDirectory(), "Config", "config.json");
             if (!File.Exists(configPath))
             {
                 throw new FileNotFoundException("Config file not found.");
@@ -88,7 +87,7 @@ namespace InvoiceGenerator.Models
         }
 
         // Allows the user to select a recipient from a list
-        priMWSTe static Recipient SelectRecipient(List<Recipient> recipients)
+        public static Recipient SelectRecipient(List<Recipient> recipients)
         {
             Console.WriteLine("Select a recipient:");
             for (int i = 0; i < recipients.Count; i++)
@@ -104,10 +103,28 @@ namespace InvoiceGenerator.Models
             throw new ArgumentException("Invalid selection.");
         }
 
-        // Rounds a given decimal value to the nearest 0.05 (5 Rappen rounding convention)
+        /// <summary>
+        /// Rounds a given value to the nearest 0.05 (5 Rappen).
+        /// This method multiplies the input value by 20 to shift the decimal place,
+        /// rounds the result to the nearest integer using the MidpointRounding.AwayFromZero strategy,
+        /// and then divides the result by 20 to shift the decimal place back, achieving rounding to the nearest 0.05.
+        /// </summary>
+        /// <param name="value">The value to be rounded.</param>
+        /// <returns>The value rounded to the nearest 0.05.</returns>
         public static decimal RoundToNearest5Rappen(decimal value)
         {
             return Math.Round(value * 20m, MidpointRounding.AwayFromZero) / 20m;
+        }
+
+        /// <summary>
+        /// Formats a decimal value as a currency string with two decimal places and a thousands separator.
+        /// This method uses the "de-CH" (Swiss German) culture to format the value according to Swiss currency conventions.
+        /// </summary>
+        /// <param name="value">The decimal value to be formatted as currency.</param>
+        /// <returns>A string representing the formatted currency value.</returns>
+        public string FormatCurrency(decimal value)
+        {
+            return string.Format(CultureInfo.CreateSpecificCulture("de-CH"), "{0:N2}", value);
         }
     }
 
@@ -127,5 +144,8 @@ namespace InvoiceGenerator.Models
         public string Place { get; set; } = string.Empty; // City or place
         public decimal HourlyWage { get; set; } // Hourly wage
         public bool InclMWST { get; set; } // Indicates if MWST is included in the hourly wage
+        public string TypeOfService { get; set; } = string.Empty; // Defines the type of service of the invoice
+        public bool IsMonthlyPeriod { get; set; } // Determines whether the first and last date of the month should be displayed
+        public decimal Expenses { get; } = 118.60m; // Total expenses
     }
 }

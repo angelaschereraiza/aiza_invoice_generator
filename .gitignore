@@ -3,3 +3,4 @@ src/obj/
 tests/bin/
 tests/obj/
 src/Config/config.json
+src/Outputs

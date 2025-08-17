@@ -34,10 +34,10 @@ public static class QRBillGenerator
             Currency = "CHF",
             Debtor = new Address
             {
-                Name = invoice.Recipient,
-                Street = invoice.Street,
-                PostalCode = invoice.ZIP,
-                Town = invoice.Place,
+                Name = invoice.SelectedRecipient.Name,
+                Street = invoice.SelectedRecipient.Street,
+                PostalCode = invoice.SelectedRecipient.ZIP,
+                Town = invoice.SelectedRecipient.Place,
                 CountryCode = "CH"
             },
             Format = new BillFormat

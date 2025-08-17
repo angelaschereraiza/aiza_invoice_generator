@@ -20,7 +20,7 @@ public static class InvoiceGenerator
 
         // Define paths for the template and the output file
         string templatePath = Path.GetFullPath("Templates/InvoiceTemplate.odt");
-        string outputPath = Path.GetFullPath($"Outputs/Rechnung_{invoice.Recipient.Replace(" ", "_")}_{invoice.Date.Replace(".", "_")}.odt");
+        string outputPath = Path.GetFullPath($"Outputs/Rechnung_{invoice.SelectedRecipient.Name.Replace(" ", "_")}_{invoice.Date.Replace(".", "_")}.odt");
 
         // Ensure the template file exists
         if (!File.Exists(templatePath))
@@ -95,15 +95,16 @@ public static class InvoiceGenerator
 
                 // Replace placeholders with actual values
                 content = content.Replace("[Date]", invoice.Date)
-                                 .Replace("[FirstDateMonth]", invoice.FirstDateMonth)
-                                 .Replace("[HourlyWage]", invoice.FormatCurrency(invoice.HourlyWage))
+                                 .Replace("[HourlyWage]", invoice.FormatCurrency(invoice.SelectedRecipient.HourlyWage))
                                  .Replace("[Hours]", invoice.Hours.ToString())
-                                 .Replace("[LastDateMonth]", invoice.LastDateMonth)
-                                 .Replace("[MonthYear]", invoice.MonthYear)
+                                 .Replace("[TypeOfService]", invoice.SelectedRecipient.TypeOfService)
+                                 .Replace("[MonthlyPeriod]", invoice.SelectedRecipient.IsMonthlyPeriod ? $"{invoice.FirstDateMonth} - {invoice.LastDateMonth}" : "Spesen - Reisekosten und Verpflegung")
+                                 .Replace("[Expenses]", invoice.SelectedRecipient.IsMonthlyPeriod ? "" : invoice.SelectedRecipient.Expenses.ToString())
+                                 .Replace("[MonthYear]", invoice.SelectedRecipient.IsMonthlyPeriod ? invoice.MonthYear : "" )
                                  .Replace("[MWSTRate]", invoice.MWSTRate.ToString())
                                  .Replace("[MWSTPrice]", invoice.FormatCurrency(invoice.MWSTPrice))
                                  .Replace("[Place]", $"{invoice.SelectedRecipient.ZIP} {invoice.SelectedRecipient.Place}")
-                                 .Replace("[Recipient]", invoice.SelectedRecipient.Recipient)
+                                 .Replace("[Recipient]", invoice.SelectedRecipient.Name)
                                  .Replace("[Street]", invoice.SelectedRecipient.Street)
                                  .Replace("[TotalPrice]", invoice.FormatCurrency(invoice.TotalPrice))
                                  .Replace("[TotalPriceInclMWST]", invoice.FormatCurrency(invoice.TotalPriceInclMWST));

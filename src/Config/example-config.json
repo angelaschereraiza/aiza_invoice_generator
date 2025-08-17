@@ -7,6 +7,8 @@
             "ZIP": "0000",
             "Place": "Test",
             "HourlyWage": 1.0,
+            "TypeOfService": "Software-Entwicklungsdienstleistungen",
+            "IsMonthlyPeriod": true,
             "InclMWST": true
         },
         {
@@ -15,6 +17,8 @@
             "ZIP": "0000",
             "Place": "Test",
             "HourlyWage": 2.0,
+            "TypeOfService": "6-Tage Kurs Kubernetes",
+            "IsMonthlyPeriod": false,
             "InclMWST": false
         }
     ]
