@@ -11,6 +11,49 @@ namespace InvoiceGenerator.Tests;
 [TestFixture]
 public class QRBillGeneratorTests
 {
+    private string? _originalCurrentDirectory;
+    private string? _tempConfigDirectory;
+
+    [SetUp]
+    public void SetUp()
+    {
+        _originalCurrentDirectory = Directory.GetCurrentDirectory();
+
+        string repoRoot = FindRepositoryRoot();
+        _tempConfigDirectory = Path.Combine(TestContext.CurrentContext.WorkDirectory, "TestConfig");
+        string configDirectory = Path.Combine(_tempConfigDirectory!, "Config");
+        Directory.CreateDirectory(configDirectory);
+
+        string sourceConfigPath = Path.Combine(repoRoot, "src", "Config", "example-config.json");
+        string targetConfigPath = Path.Combine(configDirectory, "config.json");
+        File.Copy(sourceConfigPath, targetConfigPath, overwrite: true);
+
+        Directory.SetCurrentDirectory(_tempConfigDirectory!);
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        if (!string.IsNullOrEmpty(_tempConfigDirectory) && Directory.Exists(_tempConfigDirectory))
+        {
+            Directory.Delete(_tempConfigDirectory, recursive: true);
+        }
+
+        if (!string.IsNullOrEmpty(_originalCurrentDirectory))
+        {
+            Directory.SetCurrentDirectory(_originalCurrentDirectory);
+        }
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        string currentPath = Directory.GetCurrentDirectory();
+        while (!File.Exists(Path.Combine(currentPath, "aiza_invoice_generator.sln")))
+        {
+            currentPath = Directory.GetParent(currentPath)?.FullName ?? throw new InvalidOperationException("Repository root not found");
+        }
+        return currentPath;
+    }
     [Test]
     public void GenerateQRBillValidInvoiceGeneratesPDFWithQRCode()
     {

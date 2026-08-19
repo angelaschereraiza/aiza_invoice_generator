@@ -2,6 +2,7 @@
     "MWSTRate": 8.1,
     "Recipients": [
         {
+            "Multiple": false,
             "Name": "Test Customer AG",
             "Street": "Test Street",
             "ZIP": "0000",
@@ -12,6 +13,7 @@
             "InclMWST": true
         },
         {
+            "Multiple": false,
             "Name": "Test Customer AG 2",
             "Street": "Test Street",
             "ZIP": "0000",
@@ -20,6 +22,22 @@
             "TypeOfService": "6-Tage Kurs Kubernetes",
             "IsMonthlyPeriod": false,
             "InclMWST": false
+        },
+        {
+            "Multiple": true,
+            "Name": "Test Customer AG 3",
+            "Organisation": "TEST-M-01",
+            "Street": "Test Street",
+            "ZIP": "0000",
+            "Place": "Test",
+            "InvoiceTitle": "Kubernetes Training",
+            "TypeOfService": "Workshop inkl. Vorbereitung",
+            "TypeOfService1": "Praktische Übungen",
+            "TypeOfService2": "Aufsetzen Trainingsumgebung",
+            "Price": 1.0,
+            "Price1":2.0,
+            "Price2": 3.0,
+            "InclMWST": true
         }
     ]
 }

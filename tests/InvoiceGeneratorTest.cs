@@ -1,10 +1,4 @@
-using NUnit.Framework;
-using InvoiceGenerator.Models;
-using InvoiceGenerator.Utilities;
-using System.IO;
-using System;
 using System.IO.Compression;
-using System.Text;
 
 namespace InvoiceGenerator.Tests
 {
@@ -12,13 +6,46 @@ namespace InvoiceGenerator.Tests
     public class InvoiceGeneratorTests
     {
         private string OutputDirectory => Path.Combine(TestContext.CurrentContext.TestDirectory, "TestOutput");
+        private string? _originalCurrentDirectory;
+        private string? _tempConfigDirectory;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _originalCurrentDirectory = Directory.GetCurrentDirectory();
+
+            string repoRoot = FindRepositoryRoot();
+            _tempConfigDirectory = Path.Combine(TestContext.CurrentContext.WorkDirectory, "TestConfig");
+            string configDirectory = Path.Combine(_tempConfigDirectory!, "Config");
+            Directory.CreateDirectory(configDirectory);
+
+            string sourceConfigPath = Path.Combine(repoRoot, "src", "Config", "example-config.json");
+            string targetConfigPath = Path.Combine(configDirectory, "config.json");
+            File.Copy(sourceConfigPath, targetConfigPath, overwrite: true);
+
+            Directory.SetCurrentDirectory(_tempConfigDirectory!);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (!string.IsNullOrEmpty(_tempConfigDirectory) && Directory.Exists(_tempConfigDirectory))
+            {
+                Directory.Delete(_tempConfigDirectory, recursive: true);
+            }
+
+            if (!string.IsNullOrEmpty(_originalCurrentDirectory))
+            {
+                Directory.SetCurrentDirectory(_originalCurrentDirectory);
+            }
+        }
 
         [Test]
         public void RunWithZeroHoursShouldNotGenerateInvoice()
         {
             // Arrange
-            // Simulate user input of 0 hours
-            var inputReader = new StringReader("0");
+            // Simulate recipient selection and zero hours / zero minutes
+            var inputReader = new StringReader("1\n0\n0\n");
             Console.SetIn(inputReader);
 
             // Act & Assert
@@ -39,8 +66,8 @@ namespace InvoiceGenerator.Tests
             // Path inside the ODT file
             string contentXmlPath = "content.xml"; 
             
-            // Simulate user input of 1 hours
-           StringReader inputReader = new("1");
+            // Simulate recipient selection and valid hours/minutes
+            StringReader inputReader = new("1\n1\n0\n");
             Console.SetIn(inputReader);
             Invoice invoice = new Invoice();
 
@@ -64,6 +91,53 @@ namespace InvoiceGenerator.Tests
             }
 
             Directory.Delete(OutputDirectory, true);
+        }
+
+        [Test]
+        public void MultiServiceInvoiceWithIncludedVatUsesNetPricesAndVatAmount()
+        {
+            // Arrange
+            var inputReader = new StringReader("3\n");
+            Console.SetIn(inputReader);
+
+            // Act
+            Invoice invoice = new Invoice();
+
+            // Assert
+            Assert.That(invoice.SelectedRecipient.Multiple, Is.True);
+            Assert.That(invoice.SelectedRecipient.InclMWST, Is.True);
+            Assert.That(invoice.TotalPrice, Is.EqualTo(5.55m).Within(0.001m));
+            Assert.That(invoice.MWSTPrice, Is.EqualTo(0.45m).Within(0.001m));
+            Assert.That(invoice.TotalPriceInclMWST, Is.EqualTo(6.00m).Within(0.001m));
+            Assert.That(invoice.SelectedRecipient.Price, Is.EqualTo(0.93m).Within(0.001m));
+            Assert.That(invoice.SelectedRecipient.Price1, Is.EqualTo(1.85m).Within(0.001m));
+            Assert.That(invoice.SelectedRecipient.Price2, Is.EqualTo(2.78m).Within(0.001m));
+        }
+
+        [Test]
+        public void ResolveTemplatePathUsesMultipleServiceTemplateForMultiServiceRecipient()
+        {
+            // Arrange
+            var recipient = new Recipient { Name = "Test Customer AG 3", Multiple = true };
+
+            // Act
+            string templatePath = InvoiceGenerator.ResolveTemplatePath(recipient);
+
+            // Assert
+            Assert.That(templatePath, Does.EndWith("InvoiceMultipleServiceTemplate.odt"));
+        }
+
+        [Test]
+        public void ResolveTemplatePathUsesStandardTemplateForRegularRecipient()
+        {
+            // Arrange
+            var recipient = new Recipient { Name = "Test Customer AG" };
+
+            // Act
+            string templatePath = InvoiceGenerator.ResolveTemplatePath(recipient);
+
+            // Assert
+            Assert.That(templatePath, Does.EndWith("InvoiceTemplate.odt"));
         }
 
         [Test]
@@ -91,6 +165,22 @@ namespace InvoiceGenerator.Tests
             }
 
             Directory.Delete(OutputDirectory, true);
+        }
+
+        private static string FindRepositoryRoot()
+        {
+            DirectoryInfo? current = new(TestContext.CurrentContext.TestDirectory);
+            while (current != null)
+            {
+                if (File.Exists(Path.Combine(current.FullName, "src", "Config", "example-config.json")))
+                {
+                    return current.FullName;
+                }
+
+                current = current.Parent;
+            }
+
+            throw new DirectoryNotFoundException("Could not find repository root containing src/Config/example-config.json.");
         }
 
         private string GetExpectedOutputFilePath(Invoice invoice)

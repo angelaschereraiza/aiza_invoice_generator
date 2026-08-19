@@ -39,39 +39,66 @@ namespace InvoiceGenerator.Models
             LastDateMonth = new DateTimeOffset(billingDate.Year, billingDate.Month, DateTime.DaysInMonth(billingDate.Year, billingDate.Month), 0, 0, 0, currentDate.Offset).ToString("dd.MM.yyyy");
             MonthYear = billingDate.ToString("MMMM yyyy", CultureInfo.CreateSpecificCulture("de-DE"));
 
-            // Prompt user for worked hours and minutes
-            Console.Write("Hours worked: ");
-            string? hoursInput = Console.ReadLine();
-            Hours = decimal.TryParse(hoursInput, out decimal h) ? h : 0m;
-
-            Console.Write("Minutes worked: ");
-            string? minutesInput = Console.ReadLine();
-            Minutes = decimal.TryParse(minutesInput, out decimal m) ? m : 0m;
-
-            if (Hours == 0m && Minutes == 0m)
+            if (SelectedRecipient.Multiple)
             {
-                throw new ArgumentException("Invoice file should not be generated for zero hours and zero minutes.");
-            }
+                Hours = 1m;
+                Minutes = 0m;
+                decimal grossTotal = SelectedRecipient.Price + SelectedRecipient.Price1 + SelectedRecipient.Price2;
 
-            // Convert minutes to fractional hours
-            Hours = Hours.Value + (Minutes.Value / 60m);
+                if (SelectedRecipient.InclMWST)
+                {
+                    decimal divisor = 1 + (MWSTRate / 100m);
+                    TotalPrice = RoundToNearest5Rappen(grossTotal / divisor);
+                    TotalPriceInclMWST = RoundToNearest5Rappen(grossTotal);
+                    MWSTPrice = RoundToNearest5Rappen(TotalPriceInclMWST - TotalPrice);
 
-            // Calculate prices based on whether MWST is included in the hourly wage
-            if (InclMWST)
-            {
-                TotalPriceInclMWST = RoundToNearest5Rappen(SelectedRecipient.HourlyWage * Hours.Value);
-                TotalPrice = TotalPriceInclMWST / (1 + (MWSTRate / 100m));
-                MWSTPrice = TotalPriceInclMWST - TotalPrice;
-                SelectedRecipient.HourlyWage = SelectedRecipient.HourlyWage / (1 + (MWSTRate / 100m));
+                    SelectedRecipient.Price = Math.Round(SelectedRecipient.Price / divisor, 2);
+                    SelectedRecipient.Price1 = Math.Round(SelectedRecipient.Price1 / divisor, 2);
+                    SelectedRecipient.Price2 = Math.Round(SelectedRecipient.Price2 / divisor, 2);
+                }
+                else
+                {
+                    TotalPrice = RoundToNearest5Rappen(grossTotal);
+                    TotalPriceInclMWST = RoundToNearest5Rappen(grossTotal + (grossTotal * (MWSTRate / 100m)) + SelectedRecipient.Expenses);
+                    MWSTPrice = TotalPriceInclMWST - TotalPrice;
+                }
             }
             else
             {
-                TotalPrice = RoundToNearest5Rappen(SelectedRecipient.HourlyWage * Hours.Value);
-                MWSTPrice = TotalPrice * (MWSTRate / 100m) + SelectedRecipient.Expenses * (MWSTRate / 100m);
-                TotalPriceInclMWST = RoundToNearest5Rappen(TotalPrice + MWSTPrice + SelectedRecipient.Expenses);
-            }
+                // Prompt user for worked hours and minutes
+                Console.Write("Hours worked: ");
+                string? hoursInput = Console.ReadLine();
+                Hours = decimal.TryParse(hoursInput, out decimal h) ? h : 0m;
 
-            Hours = Math.Round(Hours.Value, 2);
+                Console.Write("Minutes worked: ");
+                string? minutesInput = Console.ReadLine();
+                Minutes = decimal.TryParse(minutesInput, out decimal m) ? m : 0m;
+
+                if (Hours == 0m && Minutes == 0m)
+                {
+                    throw new ArgumentException("Invoice file should not be generated for zero hours and zero minutes.");
+                }
+
+                // Convert minutes to fractional hours
+                Hours = Hours.Value + (Minutes.Value / 60m);
+
+                // Calculate prices based on whether MWST is included in the hourly wage
+                if (InclMWST)
+                {
+                    TotalPriceInclMWST = RoundToNearest5Rappen(SelectedRecipient.HourlyWage * Hours.Value);
+                    TotalPrice = TotalPriceInclMWST / (1 + (MWSTRate / 100m));
+                    MWSTPrice = TotalPriceInclMWST - TotalPrice;
+                    SelectedRecipient.HourlyWage = SelectedRecipient.HourlyWage / (1 + (MWSTRate / 100m));
+                }
+                else
+                {
+                    TotalPrice = RoundToNearest5Rappen(SelectedRecipient.HourlyWage * Hours.Value);
+                    MWSTPrice = TotalPrice * (MWSTRate / 100m) + SelectedRecipient.Expenses * (MWSTRate / 100m);
+                    TotalPriceInclMWST = RoundToNearest5Rappen(TotalPrice + MWSTPrice + SelectedRecipient.Expenses);
+                }
+
+                Hours = Math.Round(Hours.Value, 2);
+            }
         }
 
         // Loads configuration settings from a JSON file
@@ -145,7 +172,15 @@ namespace InvoiceGenerator.Models
         public decimal HourlyWage { get; set; } // Hourly wage
         public bool InclMWST { get; set; } // Indicates if MWST is included in the hourly wage
         public string TypeOfService { get; set; } = string.Empty; // Defines the type of service of the invoice
+        public string TypeOfService1 { get; set; } = string.Empty; // First additional service for multi-service invoices
+        public string TypeOfService2 { get; set; } = string.Empty; // Second additional service for multi-service invoices
+        public decimal Price { get; set; } // Price for the main service of a multi-service invoice
+        public decimal Price1 { get; set; } // Price for the first additional service of a multi-service invoice
+        public decimal Price2 { get; set; } // Price for the second additional service of a multi-service invoice
         public bool IsMonthlyPeriod { get; set; } // Determines whether the first and last date of the month should be displayed
-        public decimal Expenses { get; } = 118.60m; // Total expenses
+        public decimal Expenses { get; set; } = 118.60m; // Total expenses
+        public bool Multiple { get; set; } // Marks recipients that require the multi-service invoice template
+        public string Organisation { get; set; } = string.Empty; // Organisation or department for multi-service invoices
+        public string InvoiceTitle { get; set; } = string.Empty; // Invoice title for multi-service invoices
     }
 }

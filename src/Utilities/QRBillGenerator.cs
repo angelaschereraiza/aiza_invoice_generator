@@ -32,14 +32,14 @@ public static class QRBillGenerator
             },
             Amount = invoice.TotalPriceInclMWST,
             Currency = "CHF",
-            Debtor = new Address
+                        Debtor = new Address
             {
-                Name = invoice.SelectedRecipient.Name,
+                Name = invoice.SelectedRecipient.Name + " / " + invoice.SelectedRecipient.Organisation,
                 Street = invoice.SelectedRecipient.Street,
                 PostalCode = invoice.SelectedRecipient.ZIP,
                 Town = invoice.SelectedRecipient.Place,
                 CountryCode = "CH"
-            },
+            },            
             Format = new BillFormat
             {
                 Language = Language.DE,
